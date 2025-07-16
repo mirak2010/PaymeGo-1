@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Payme QR Scanner</title>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    input, button { padding: 10px; margin: 5px 0; }
+    #status { margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h2>💳 Scan Payme QR and Charge</h2>
+
+  <label>💰 Amount (UZS):</label><br>
+  <input type="number" id="amount" step="0.01" placeholder="e.g. 15000" required><br>
+
+  <label>📝 Description (optional):</label><br>
+  <input type="text" id="desc" placeholder="e.g. Americano"><br>
+
+  <h3>📷 Scan Customer's QR Code:</h3>
+  <div id="reader" style="width: 300px;"></div>
+
+  <p id="status"></p>
+
+  <script>
+    const scanner = new Html5Qrcode("reader");
+
+    function onScanSuccess(qrCodeMessage) {
+      scanner.stop();
+      document.getElementById("status").innerText = "Scanned. Charging...";
+
+      const token = qrCodeMessage;
+      const amount = document.getElementById("amount").value;
+      const desc = document.getElementById("desc").value;
+
+      fetch("/pay", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, amount, description: desc })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "success") {
+          document.getElementById("status").innerText = "✅ Payment successful!";
+        } else {
+          document.getElementById("status").innerText =
+            "❌ Payment failed during step: " + data.step + "\n" +
+            JSON.stringify(data.response);
+        }
+      })
+      .catch(err => {
+        document.getElementById("status").innerText = "❌ Network or server error.";
+      });
+    }
+
+    scanner.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: 250 },
+      onScanSuccess
+    ).catch(err => {
+      document.getElementById("status").innerText = "❌ Camera error: " + err;
+    });
+  </script>
+</body>
+</html>
