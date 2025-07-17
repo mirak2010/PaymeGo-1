@@ -1,6 +1,7 @@
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, render_template, jsonify, redirect
 import requests
 import time
+import base64
 
 app = Flask(__name__)
 
@@ -32,9 +33,10 @@ def pay():
         }
     }
 
+    auth_string = base64.b64encode(f"Paycom:{PAYME_MERCHANT_KEY}".encode()).decode()
     headers = {
         "Content-Type": "application/json",
-        "Authorization": "Basic " + PAYME_MERCHANT_KEY
+        "Authorization": f"Basic {auth_string}"
     }
 
     r1 = requests.post("https://checkout.paycom.uz/api", json=prepare_payload, headers=headers)
@@ -61,7 +63,7 @@ def pay():
         return jsonify({"error": "Perform failed", "details": perform_result}), 400
 
     # Step 3: Close Poster Order
-    close_url = f"https://{POSTER_DOMAIN}/api/dashboard.orders.close"
+    close_url = f"https://{POSTER_DOMAIN}/api/orders.close"
     close_data = {
         "token": POSTER_TOKEN,
         "order_id": order_id
