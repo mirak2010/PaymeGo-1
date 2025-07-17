@@ -1,28 +1,41 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Scan Payme GO</title>
-  <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <title>Payme QR Scan</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
-  <h1>Scan Payme QR</h1>
+  <h2>Scan Customer Payme QR</h2>
   <div id="reader" style="width:300px;"></div>
-  <form id="payForm" method="POST" action="/charge">
-    <input type="hidden" name="token" id="token">
-    <input type="hidden" name="order_id" value="{{ order_id }}">
-  </form>
 
   <script>
-    function onScanSuccess(decodedText) {
-      document.getElementById('token').value = decodedText;
-      document.getElementById('payForm').submit();
-    }
+    Poster.onAppReady(function() {
+      Poster.orders.getActive().then(function(order) {
+        const orderId = order.id;
+        const amount = order.total_sum;
 
-    new Html5Qrcode("reader").start(
-      { facingMode: "environment" },
-      { fps: 10, qrbox: 250 },
-      onScanSuccess
-    );
+        function onScanSuccess(decodedText) {
+          html5QrcodeScanner.clear();
+
+          fetch("/pay", {
+            method: "POST",
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+              token: decodedText, // token from QR
+              amount: amount,
+              order_id: orderId
+            })
+          }).then(res => res.json()).then(data => {
+            alert("Payment Successful: " + JSON.stringify(data));
+          }).catch(err => alert("Error: " + err));
+        }
+
+        const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+        html5QrcodeScanner.render(onScanSuccess);
+      });
+    });
   </script>
+
+  <script src="https://app.joinposter.com/api/poster-lib.js"></script>
 </body>
 </html>
