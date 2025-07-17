@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Scan Payme GO</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body>
+  <h1>Scan Payme QR</h1>
+  <div id="reader" style="width:300px;"></div>
+  <form id="payForm" method="POST" action="/charge">
+    <input type="hidden" name="token" id="token">
+    <input type="hidden" name="order_id" value="{{ order_id }}">
+  </form>
+
+  <script>
+    function onScanSuccess(decodedText) {
+      document.getElementById('token').value = decodedText;
+      document.getElementById('payForm').submit();
+    }
+
+    new Html5Qrcode("reader").start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: 250 },
+      onScanSuccess
+    );
+  </script>
+</body>
+</html>
