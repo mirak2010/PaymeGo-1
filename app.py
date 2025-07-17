@@ -19,6 +19,13 @@ PAYME_PAYMENT_METHOD_ID = 17
 def index():
     return render_template('index.html')
 
+@app.route('/pay')
+def pay_redirect():
+    order_id = request.args.get('order_id')
+    if not order_id:
+        return redirect('/')
+    return redirect(f'/pay/{order_id}')
+
 @app.route('/pay/<order_id>')
 def pay(order_id):
     return render_template('scan.html', order_id=order_id)

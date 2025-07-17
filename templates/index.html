@@ -5,7 +5,7 @@
 </head>
 <body>
   <h1>Enter Order ID</h1>
-  <form action="/pay" method="get">
+  <form action="/pay" method="get" onsubmit="this.action='/pay/'+this.order_id.value; return true;">
     <input name="order_id" placeholder="Poster Order ID" required>
     <button type="submit">Next</button>
   </form>
